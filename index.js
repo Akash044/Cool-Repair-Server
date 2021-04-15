@@ -16,11 +16,11 @@ app.use(express.json());
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
 
-const admin = require("firebase-admin");
-const serviceAccount = require("./prime-books-auth-firebase-adminsdk-qbt80-f990eeed6c.json");
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-});
+// const admin = require("firebase-admin");
+// const serviceAccount = require("./prime-books-auth-firebase-adminsdk-qbt80-f990eeed6c.json");
+// admin.initializeApp({
+//   credential: admin.credential.cert(serviceAccount),
+// });
 
 app.get("/", (req, res) => {
   res.send("server working");
@@ -30,28 +30,31 @@ client.connect((err) => {
   const serviceCollection = client
     .db(process.env.DB_NAME)
     .collection(process.env.DB_COL1);
-  const reviewsCollection = client
+  const reviewCollection = client
     .db(process.env.DB_NAME)
     .collection(process.env.DB_COL2);
-  const adminsCollection = client
+  const adminCollection = client
     .db(process.env.DB_NAME)
     .collection(process.env.DB_COL3);
-  const appointmentsCollection = client
+  const appointmentCollection = client
     .db(process.env.DB_NAME)
     .collection(process.env.DB_COL4);
 
   //  ALL BOOKS SECTION START HERE
-  // read all books
+  // read all services
   app.get("/services", (req, res) => {
-    serviceCollection.find({}).toArray((err, documents) => {
+    serviceCollection.find({})
+    .toArray((err, documents) => {
       res.send(documents);
     });
   });
   // read specific book by id
   app.get("/service/:id", (req, res) => {
+    console.log(req.params.id);
     serviceCollection
       .find({ _id: ObjectId(req.params.id) })
       .toArray((err, documents) => {
+        console.log('come in')
         res.send(documents[0]);
       });
   });
@@ -94,7 +97,7 @@ client.connect((err) => {
   // add Appointment
   app.post("/addAppointment", (req, res) => {
     const orderInfo = req.body;
-    appointmentsCollection.insertOne(orderInfo).then((result) => {
+    appointmentCollection.insertOne(orderInfo).then((result) => {
       console.log("data added successfully");
       res.send(result);
     });
@@ -102,42 +105,55 @@ client.connect((err) => {
 
   // read Appointments
   app.get("/allAppointment/:email", (req, res) => {
-    const userIdToken = req.headers.authorization.split(" ")[1];
-    admin
-      .auth()
-      .verifyIdToken(userIdToken)
-      .then((decodedToken) => {
-        const decodedTokenEmail = decodedToken.email;
-        if (req.params.email === decodedTokenEmail) {
-          adminsCollection
+    adminCollection
             .find({ email: req.params.email })
             .toArray((err, documents) => {
               if (documents.length) {
                 res.send('admin');
               } else {
-                appointmentsCollection
+                appointmentCollection
                   .find({ email: req.params.email })
                   .toArray((err, documents) => {
                     res.send(documents);
                   });
               }
             });
-        }
-      })
-      .catch((error) => {});
+    // const userIdToken = req.headers.authorization.split(" ")[1];
+    // admin
+    //   .auth()
+    //   .verifyIdToken(userIdToken)
+    //   .then((decodedToken) => {
+    //     const decodedTokenEmail = decodedToken.email;
+    //     if (req.params.email === decodedTokenEmail) {
+    //       adminsCollection
+    //         .find({ email: req.params.email })
+    //         .toArray((err, documents) => {
+    //           if (documents.length) {
+    //             res.send('admin');
+    //           } else {
+    //             appointmentsCollection
+    //               .find({ email: req.params.email })
+    //               .toArray((err, documents) => {
+    //                 res.send(documents);
+    //               });
+    //           }
+    //         });
+    //     }
+    //   })
+    //   .catch((error) => {});
   });
   // ORDER SECTION END HERE
 
   //REVIEW SECTION START HERE
   app.get("/reviews", (req, res) => {
-    reviewsCollection.find({}).toArray((err, documents) => {
+    reviewCollection.find({}).toArray((err, documents) => {
       res.send(documents);
     });
   });
 
   app.post("/addReview", (req, res) => {
     const orderInfo = req.body;
-    reviewsCollection.insertOne(orderInfo).then((result) => {
+    reviewCollection.insertOne(orderInfo).then((result) => {
       console.log("data added successfully");
       res.send(result);
     });
