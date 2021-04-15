@@ -49,20 +49,30 @@ client.connect((err) => {
     });
   });
   // read specific book by id
-  app.get("/service/:id", (req, res) => {
-    console.log(req.params.id);
-    serviceCollection
+  app.post("/service/:id", (req, res) => {
+    const email = req.body.email;
+    console.log(email);
+    adminCollection
+    .find({ email: email })
+    .toArray((err, documents) => {
+      if(documents.length){
+        res.send({_id: "admin"});
+      }else{
+        serviceCollection
       .find({ _id: ObjectId(req.params.id) })
       .toArray((err, documents) => {
         console.log('come in')
         res.send(documents[0]);
       });
+      }
+    })
   });
 
   // insert new Service
   app.post("/addService", (req, res) => {
     const serviceInfo = req.body;
-    serviceCollection.insertOne(serviceInfo).then((result) => {
+    serviceCollection.insertOne(serviceInfo)
+    .then((result) => {
       console.log("data added successfully");
       res.send(result);
     });
@@ -96,8 +106,9 @@ client.connect((err) => {
   //APPOINTMENT SECTION START HERE
   // add Appointment
   app.post("/addAppointment", (req, res) => {
-    const orderInfo = req.body;
-    appointmentCollection.insertOne(orderInfo).then((result) => {
+    const appointmentInfo = req.body;
+    appointmentCollection.insertOne(appointmentInfo)
+    .then((result) => {
       console.log("data added successfully");
       res.send(result);
     });
@@ -152,10 +163,23 @@ client.connect((err) => {
   });
 
   app.post("/addReview", (req, res) => {
-    const orderInfo = req.body;
-    reviewCollection.insertOne(orderInfo).then((result) => {
+    const serviceReview = req.body;
+    console.log(serviceReview);
+    reviewCollection.insertOne(serviceReview)
+    .then((result) => {
       console.log("data added successfully");
       res.send(result);
+    });
+  });
+
+
+  app.post("/addAdmin", (req, res) => {
+    const adminEmail = req.body;
+    console.log(adminEmail);
+    adminCollection.insertOne(adminEmail)
+    .then((result) => {
+      console.log("data added successfully");
+      res.send(result.insertedCount>0);
     });
   });
 });
