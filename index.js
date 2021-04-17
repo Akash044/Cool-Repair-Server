@@ -47,10 +47,8 @@ client.connect((err) => {
   });
   // read specific services by id
   app.get("/service/:id", (req, res) => {
-   
         serviceCollection.find({ _id: ObjectId(req.params.id) })
         .toArray((err, documents) => {
-          console.log("come in");
             res.send(documents[0]);
           });
       });
@@ -58,7 +56,7 @@ client.connect((err) => {
   app.post("/addService", (req, res) => {
     const serviceInfo = req.body;
     serviceCollection.insertOne(serviceInfo).then((result) => {
-      console.log("data added successfully");
+      console.log("Service added successfully");
       res.send(result);
     });
   });
@@ -79,7 +77,7 @@ client.connect((err) => {
     const appointmentInfo = req.body;
     appointmentCollection.insertOne(appointmentInfo).then((result) => {
       console.log("appointment added successfully");
-      res.send(result);
+      res.send(result.insertedCount>0);
     });
   });
   // read Appointments email
@@ -130,10 +128,9 @@ client.connect((err) => {
 
   app.post("/addReview", (req, res) => {
     const serviceReview = req.body;
-    console.log(serviceReview);
     reviewCollection.insertOne(serviceReview).then((result) => {
-      console.log("data added successfully");
-      res.send(result);
+      console.log("review added successfully");
+      res.send(result.insertedCount>0);
     });
   });
   //REVIEW SECTION END HERE
@@ -143,10 +140,9 @@ client.connect((err) => {
    //add admin
   app.post("/addAdmin", (req, res) => {
     const adminEmail = req.body;
-    console.log(adminEmail);
     adminCollection.insertOne(adminEmail)
     .then((result) => {
-      console.log("data added successfully");
+      console.log("Admin added successfully");
       res.send(result.insertedCount > 0);
     });
   });
@@ -154,7 +150,6 @@ client.connect((err) => {
 //Check is admin or not
   app.get("/isAdmin/:email", (req, res) => {
     const email = req.params.email;
-    console.log(email);
     adminCollection.find({ email: email })
     .toArray((err, documents) => {
       res.send(documents.length > 0) ;
