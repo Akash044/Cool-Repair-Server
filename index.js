@@ -16,7 +16,6 @@ app.use(express.json());
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
 
-
 app.get("/", (req, res) => {
   res.send("server working");
 });
@@ -33,25 +32,26 @@ client.connect((err) => {
   const adminCollection = client
     .db(process.env.DB_NAME)
     .collection(process.env.DB_COL3);
-    
+
   const appointmentCollection = client
     .db(process.env.DB_NAME)
     .collection(process.env.DB_COL4);
 
   // SERVICES SECTION START HERE
   // read all services
-  app.get("/services", (req, res) => {
-    serviceCollection.find({}).toArray((err, documents) => {
+  app.get("/services", async (req, res) => {
+    await serviceCollection.find({}).toArray((err, documents) => {
       res.send(documents);
     });
   });
   // read specific services by id
   app.get("/service/:id", (req, res) => {
-        serviceCollection.find({ _id: ObjectId(req.params.id) })
-        .toArray((err, documents) => {
-            res.send(documents[0]);
-          });
+    serviceCollection
+      .find({ _id: ObjectId(req.params.id) })
+      .toArray((err, documents) => {
+        res.send(documents[0]);
       });
+  });
   // insert new Service
   app.post("/addService", (req, res) => {
     const serviceInfo = req.body;
@@ -70,34 +70,33 @@ client.connect((err) => {
   });
   // SERVICES SECTION END HERE
 
-
   //APPOINTMENT SECTION START HERE
   // add Appointment
   app.post("/addAppointment", (req, res) => {
     const appointmentInfo = req.body;
     appointmentCollection.insertOne(appointmentInfo).then((result) => {
       console.log("appointment added successfully");
-      res.send(result.insertedCount>0);
+      res.send(result.insertedCount > 0);
     });
   });
   // read Appointments email
-  app.get("/allAppointment/:email", (req, res) => {
-    appointmentCollection
+  app.get("/allAppointment/:email", async (req, res) => {
+    await appointmentCollection
       .find({ email: req.params.email })
       .toArray((err, documents) => {
         res.send(documents);
       });
   });
   // read all Appointments
-  app.get("/allAppointment", (req, res) => {
-    appointmentCollection.find({})
-    .toArray((err, documents) => {
+  app.get("/allAppointment", async (req, res) => {
+    await appointmentCollection.find({}).toArray((err, documents) => {
       res.send(documents);
     });
   });
   // read Appointment by id
   app.get("/appointment/:id", (req, res) => {
-    appointmentCollection.find({ _id: ObjectId(req.params.id) })
+    appointmentCollection
+      .find({ _id: ObjectId(req.params.id) })
       .toArray((err, documents) => {
         res.send(documents);
       });
@@ -109,19 +108,18 @@ client.connect((err) => {
       .updateOne(
         { _id: ObjectId(req.params.id) },
         {
-          $set: {serStatus: req.body.status}
+          $set: { serStatus: req.body.status },
         }
       )
       .then((result) => {
-        res.send(result.modifiedCount > 0)
+        res.send(result.modifiedCount > 0);
       });
   });
   // APPOINTMENT SECTION END HERE
 
-
   //REVIEW SECTION START HERE
-  app.get("/reviews", (req, res) => {
-    reviewCollection.find({}).toArray((err, documents) => {
+  app.get("/reviews", async (req, res) => {
+    await reviewCollection.find({}).toArray((err, documents) => {
       res.send(documents);
     });
   });
@@ -130,32 +128,28 @@ client.connect((err) => {
     const serviceReview = req.body;
     reviewCollection.insertOne(serviceReview).then((result) => {
       console.log("review added successfully");
-      res.send(result.insertedCount>0);
+      res.send(result.insertedCount > 0);
     });
   });
   //REVIEW SECTION END HERE
 
-
-   //ADMIN SECTION START HERE
-   //add admin
+  //ADMIN SECTION START HERE
+  //add admin
   app.post("/addAdmin", (req, res) => {
     const adminEmail = req.body;
-    adminCollection.insertOne(adminEmail)
-    .then((result) => {
+    adminCollection.insertOne(adminEmail).then((result) => {
       console.log("Admin added successfully");
       res.send(result.insertedCount > 0);
     });
   });
 
-//Check is admin or not
+  //Check is admin or not
   app.get("/isAdmin/:email", (req, res) => {
     const email = req.params.email;
-    adminCollection.find({ email: email })
-    .toArray((err, documents) => {
-      res.send(documents.length > 0) ;
-      });
+    adminCollection.find({ email: email }).toArray((err, documents) => {
+      res.send(documents.length > 0);
+    });
   });
-   //ADMIN SECTION END HERE
-
+  //ADMIN SECTION END HERE
 });
 app.listen(process.env.PORT || 8080);
